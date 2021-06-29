@@ -236,7 +236,7 @@ flattenAgain list = flatMap id list
 -- Full (1 :. 10 :. Nil)
 --
 -- >>> seqOptional Nil
--- Full []
+-- Full Nil
 --
 -- >>> seqOptional (Full 1 :. Full 10 :. Empty :. Nil)
 -- Empty
@@ -248,9 +248,6 @@ extractOptional :: Optional a -> a
 extractOptional (Full v) = v
 extractOptional _ = error "no can do"
 
---f :: List a -> Optional a -> List a
---f acc v = extractOptional v :. acc
-
 seqOptional :: (Eq a, Num a) =>
   List (Optional a)
   -> Optional (List a)
@@ -259,7 +256,6 @@ seqOptional list =
         hasEmpty = headOr (Full 42) filteredNils == Empty
     in if hasEmpty
     then Empty
-    --else Full $ foldLeft f Nil list
     else Full $ foldRight ((:.) . extractOptional) Nil list
 
 -- | Find the first element in the list matching the predicate.
@@ -282,8 +278,10 @@ find ::
   (a -> Bool)
   -> List a
   -> Optional a
-find =
-  error "todo: Course.List#find"
+find _ Nil = Empty
+find f (l :. ls) = if f l
+    then Full l
+    else find f ls
 
 -- | Determine if the length of the given list is greater than 4.
 --
@@ -301,8 +299,8 @@ find =
 lengthGT4 ::
   List a
   -> Bool
-lengthGT4 =
-  error "todo: Course.List#lengthGT4"
+lengthGT4 (_ :. _ :. _ :. _ :. _ :. _) = True
+lengthGT4 _ = False
 
 -- | Reverse a list.
 --
@@ -318,8 +316,8 @@ lengthGT4 =
 reverse ::
   List a
   -> List a
-reverse =
-  error "todo: Course.List#reverse"
+reverse Nil = Nil
+reverse list = foldLeft (flip (:.)) Nil list
 
 -- | Produce an infinite `List` that seeds with the given value at its head,
 -- then runs the given function for subsequent elements
@@ -347,8 +345,7 @@ produce f x = x :. produce f (f x)
 notReverse ::
   List a
   -> List a
-notReverse =
-  error "todo: Is it even possible?"
+notReverse = id
 
 ---- End of list exercises
 
