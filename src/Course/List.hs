@@ -209,8 +209,7 @@ flatMap ::
   (a -> List b)
   -> List a
   -> List b
-flatMap =
-  error "todo: Course.List#flatMap"
+flatMap f list = flatten $ map f list
 
 -- | Flatten a list of lists to a list (again).
 -- HOWEVER, this time use the /flatMap/ function that you just wrote.
@@ -219,8 +218,7 @@ flatMap =
 flattenAgain ::
   List (List a)
   -> List a
-flattenAgain =
-  error "todo: Course.List#flattenAgain"
+flattenAgain list = flatMap id list
 
 -- | Convert a list of optional values to an optional list of values.
 --
@@ -234,7 +232,8 @@ flattenAgain =
 -- when the list contains one or more `Empty` values.
 --
 -- >>> seqOptional (Full 1 :. Full 10 :. Nil)
--- Full [1,10]
+-- Full [1,10] -- wrong?
+-- Full (1 :. 10 :. Nil)
 --
 -- >>> seqOptional Nil
 -- Full []
@@ -244,11 +243,24 @@ flattenAgain =
 --
 -- >>> seqOptional (Empty :. map Full infinity)
 -- Empty
-seqOptional ::
+
+extractOptional :: Optional a -> a
+extractOptional (Full v) = v
+extractOptional _ = error "no can do"
+
+--f :: List a -> Optional a -> List a
+--f acc v = extractOptional v :. acc
+
+seqOptional :: (Eq a, Num a) =>
   List (Optional a)
   -> Optional (List a)
-seqOptional =
-  error "todo: Course.List#seqOptional"
+seqOptional list =
+    let filteredNils = filter (== Empty) list
+        hasEmpty = headOr (Full 42) filteredNils == Empty
+    in if hasEmpty
+    then Empty
+    --else Full $ foldLeft f Nil list
+    else Full $ foldRight ((:.) . extractOptional) Nil list
 
 -- | Find the first element in the list matching the predicate.
 --
